@@ -1,28 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export const useModel = (selectedFile: File | undefined) => {
   const [modelUrl, setModelUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (selectedFile === undefined) {
-      return;
-    }
-
-    const url = URL.createObjectURL(selectedFile);
-    console.log("created:", url);
-    setModelUrl(url);
-
-    return () => {
-      if (url === undefined) {
-        return;
+    const fetchInitialModel = async () => {
+      try {
+        const response = await fetch('/assets/vrm/example.vrm');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        setModelUrl(url);
+      } catch (error) {
+        console.error('Failed to fetch initial model:', error);
       }
-
-      URL.revokeObjectURL(url);
-      console.log("revoked:", url);
     };
+
+    if (!selectedFile) {
+      fetchInitialModel();
+    } else {
+      const url = URL.createObjectURL(selectedFile);
+      setModelUrl(url);
+    }
   }, [selectedFile]);
 
-  return {
-    modelUrl,
-  };
+  return { modelUrl };
 };
+
